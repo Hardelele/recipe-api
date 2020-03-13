@@ -6,9 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Data
@@ -20,8 +19,16 @@ import java.util.UUID;
 public class IngredientEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
+
+    @Column(name = "name")
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private Status status;
-    private long timestamp;
+
+    @Column(name = "timestamp")
+    private Timestamp timestamp;
 }

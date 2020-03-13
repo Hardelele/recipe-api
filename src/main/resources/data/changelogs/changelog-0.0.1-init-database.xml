@@ -10,14 +10,18 @@
 
     <changeSet id="init-ingredients-table" author="hardelele" runOnChange="true">
         <createTable tableName="ingredients">
-            <column name="id" type="uuid"/>
+            <column name="id" type="uuid">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
             <column name="name" type="varchar(255)"/>
         </createTable>
     </changeSet>
 
     <changeSet id="init-recipes-table" author="hardelele" runOnChange="true">
         <createTable tableName="recipes">
-            <column name="id" type="uuid"/>
+            <column name="id" type="uuid">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
             <column name="name" type="varchar(255)"/>
         </createTable>
     </changeSet>

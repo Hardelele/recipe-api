@@ -9,5 +9,6 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
     <include file="classpath:/data/changelogs/changelog-0.0.1-init-database.xml"/>
+    <include file="classpath:/data/changelogs/changelog-0.0.2-add-status-fields.xml"/>
 
 </databaseChangeLog>
