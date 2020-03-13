@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class IngredientTransfer {
 
     private String name;
+    private long timestamp;
 }
