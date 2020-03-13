@@ -30,7 +30,22 @@ public class IngredientController {
     }
 
     @PostMapping("/ingredients")
-    public IngredientTransfer getIngredient(@RequestBody IngredientForm ingredient) {
+    public IngredientTransfer createIngredient(@RequestBody IngredientForm ingredient) {
         return ingredientService.createIngredient(ingredient);
+    }
+
+    @PutMapping("/ingredients/{id}")
+    public IngredientTransfer editIngredient(@RequestBody IngredientForm ingredient, @PathVariable UUID id) {
+        return ingredientService.updateIngredient(id, ingredient);
+    }
+
+    @DeleteMapping("/ingredients/{id}")
+    public void deleteIngredient(@PathVariable UUID id) {
+        ingredientService.deleteIngredient(id);
+    }
+
+    @DeleteMapping("/ingredients/clearAll")
+    public void clearDatabase() {
+        ingredientService.deleteAllIngredients();
     }
 }
