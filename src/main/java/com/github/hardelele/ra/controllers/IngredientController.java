@@ -1,8 +1,7 @@
 package com.github.hardelele.ra.controllers;
 
-import com.github.hardelele.ra.objects.forms.IngredientForm;
-import com.github.hardelele.ra.objects.models.IngredientModel;
-import com.github.hardelele.ra.objects.transfers.IngredientTransfer;
+import com.github.hardelele.ra.models.forms.IngredientForm;
+import com.github.hardelele.ra.models.transfers.IngredientTransfer;
 import com.github.hardelele.ra.services.IngredientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
