@@ -35,15 +35,16 @@ public class IngredientService {
     }
 
     public List<IngredientTransfer> getAllIngredients() {
+
         return ingredientRepository.findAll().stream()
                 .map(entity -> mapper.map(entity, IngredientTransfer.class))
                 .collect(Collectors.toList());
     }
 
     public IngredientTransfer getIngredient(UUID id) {
-        IngredientEntity entity = ingredientRepository.findById(id)
+        return ingredientRepository.findById(id)
+                .map(entity -> mapper.map(entity, IngredientTransfer.class))
                 .orElseThrow(() -> new NotFoundException("Not found ingredient by id:" + id, HttpStatus.NOT_FOUND));
-        return mapper.map(entity, IngredientTransfer.class);
     }
 
     public IngredientTransfer createIngredient(IngredientForm ingredientForm) {
@@ -57,5 +58,22 @@ public class IngredientService {
 
         ingredientToSave = ingredientRepository.save(ingredientToSave);
         return mapper.map(ingredientToSave, IngredientTransfer.class);
+    }
+
+    public IngredientTransfer updateIngredient(UUID id, IngredientForm ingredientForm) {
+
+        IngredientEntity entity = ingredientRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Not found ingredient by id:" + id, HttpStatus.NOT_FOUND));
+        entity.setName(ingredientForm.getName());
+        ingredientRepository.save(entity);
+        return mapper.map(entity, IngredientTransfer.class);
+    }
+
+    public void deleteAllIngredients() {
+        ingredientRepository.deleteAll();
+    }
+
+    public void deleteIngredient(UUID id) {
+        ingredientRepository.deleteById(id);
     }
 }
