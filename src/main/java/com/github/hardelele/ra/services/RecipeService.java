@@ -5,8 +5,6 @@ import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.entities.RecipeEntity;
 import com.github.hardelele.ra.models.forms.IngredientForm;
 import com.github.hardelele.ra.models.forms.RecipeForm;
-import com.github.hardelele.ra.models.transfers.IngredientTransfer;
-import com.github.hardelele.ra.models.transfers.RecipeTransfer;
 import com.github.hardelele.ra.repositories.RecipeRepository;
 import com.github.hardelele.ra.utils.enums.Status;
 import org.dozer.Mapper;
@@ -56,7 +54,8 @@ public class RecipeService {
     }
 
     public RecipeEntity updateRecipe(UUID id, RecipeForm recipeForm) {
-        RecipeEntity recipeEntity = recipeRepository.findById(id).orElseThrow(() -> new NotFoundException("Not found recipe by id:" + id, HttpStatus.NOT_FOUND));
+        RecipeEntity recipeEntity = recipeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Not found recipe by id:" + id, HttpStatus.NOT_FOUND));
         return recipeRepository.save(editEntity(recipeEntity, recipeForm));
     }
 

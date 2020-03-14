@@ -1,7 +1,6 @@
 package com.github.hardelele.ra.models.forms;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.github.hardelele.ra.models.entities.IngredientEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

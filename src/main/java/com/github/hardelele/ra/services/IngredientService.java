@@ -4,7 +4,6 @@ import com.github.hardelele.ra.exceptions.AlreadyExistException;
 import com.github.hardelele.ra.exceptions.NotFoundException;
 import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.forms.IngredientForm;
-import com.github.hardelele.ra.models.transfers.IngredientTransfer;
 import com.github.hardelele.ra.repositories.IngredientRepository;
 import com.github.hardelele.ra.utils.enums.Status;
 import org.dozer.Mapper;
@@ -17,7 +16,6 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
