@@ -1,15 +1,15 @@
 package com.github.hardelele.ra.controllers;
 
-import com.github.hardelele.ra.models.forms.IngredientForm;
 import com.github.hardelele.ra.models.forms.RecipeForm;
-import com.github.hardelele.ra.models.transfers.IngredientTransfer;
 import com.github.hardelele.ra.models.transfers.RecipeTransfer;
 import com.github.hardelele.ra.services.RecipeService;
+import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/recipes")
@@ -17,29 +17,35 @@ public class RecipeController {
 
     private final RecipeService recipeService;
 
+    private final Mapper mapper;
+
     @Autowired
-    public RecipeController(RecipeService recipeService) {
+    public RecipeController(RecipeService recipeService, Mapper mapper) {
         this.recipeService = recipeService;
+        this.mapper = mapper;
     }
 
     @PostMapping("/")
     public RecipeTransfer createRecipe(@RequestBody RecipeForm recipe) {
-        return recipeService.createRecipe(recipe);
+        return mapper.map(recipeService.createRecipe(recipe), RecipeTransfer.class);
     }
 
     @GetMapping("/")
     public List<RecipeTransfer> getAllRecipes() {
-        return recipeService.getAllRecipes();
+        return recipeService
+                .getAllRecipes().stream()
+                .map(entity -> mapper.map(entity, RecipeTransfer.class))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public RecipeTransfer getRecipe(@PathVariable UUID id) {
-        return recipeService.getRecipe(id);
+        return mapper.map(recipeService.getRecipe(id), RecipeTransfer.class);
     }
 
     @PutMapping("/{id}")
     public RecipeTransfer editRecipe(@PathVariable UUID id, @RequestBody RecipeForm recipe) {
-        return recipeService.updateRecipe(id, recipe);
+        return mapper.map(recipeService.updateRecipe(id, recipe), RecipeTransfer.class);
     }
 
     @DeleteMapping("/{id}")
