@@ -5,6 +5,7 @@ import com.github.hardelele.ra.exceptions.NotFoundException;
 import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.forms.IngredientForm;
 import com.github.hardelele.ra.repositories.IngredientRepository;
+import com.github.hardelele.ra.services.cache.DoubleKeyCache;
 import com.github.hardelele.ra.utils.enums.Status;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +23,9 @@ import java.util.UUID;
 public class IngredientService {
 
     private final IngredientRepository ingredientRepository;
-
     private final Mapper mapper;
-
-    private final Date date = new Date();;
+    private final Date date = new Date();
+    private final DoubleKeyCache<IngredientEntity> ingredientsCache = new DoubleKeyCache<>();
 
     @Autowired
     public IngredientService(IngredientRepository ingredientRepository, Mapper mapper) {
