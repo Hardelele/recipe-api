@@ -1,4 +1,4 @@
-package com.github.hardelele.ra.handlers;
+package com.github.hardelele.ra.exceptions.handlers;
 
 import com.github.hardelele.ra.exceptions.AlreadyExistException;
 import com.github.hardelele.ra.exceptions.NotFoundException;
