@@ -43,7 +43,6 @@ public class RecipeService {
 
     public RecipeEntity createRecipe(RecipeForm recipeForm) {
         RecipeEntity recipeToSave = formToEntity(recipeForm);
-        recipeToSave.setIngredients(mapIngredientsToEntity(recipeForm));
         return recipeRepository.save(recipeToSave);
     }
 
@@ -57,12 +56,8 @@ public class RecipeService {
     }
 
     public RecipeEntity updateRecipe(UUID id, RecipeForm recipeForm) {
-        RecipeEntity entity = recipeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found recipe by id:" + id, HttpStatus.NOT_FOUND));
-        entity.setName(recipeForm.getName());
-        entity.setCookingMilliseconds(recipeForm.getCookingMilliseconds());
-        entity.setDescription(recipeForm.getDescription());
-        return recipeRepository.save(entity);
+        RecipeEntity recipeEntity = recipeRepository.findById(id).orElseThrow(() -> new NotFoundException("Not found recipe by id:" + id, HttpStatus.NOT_FOUND));
+        return recipeRepository.save(editEntity(recipeEntity, recipeForm));
     }
 
     public void deleteRecipe(UUID id) {
@@ -75,10 +70,19 @@ public class RecipeService {
 
     public RecipeEntity formToEntity(RecipeForm recipeForm) {
         RecipeEntity recipeToSave = mapper.map(recipeForm, RecipeEntity.class);
+        recipeToSave.setIngredients(mapIngredientsToEntity(recipeForm));
         recipeToSave.setId(UUID.randomUUID());
         recipeToSave.setStatus(Status.ACTIVE);
         recipeToSave.setTimestamp(new Timestamp(date.getTime()));
         return recipeToSave;
+    }
+
+    private RecipeEntity editEntity(RecipeEntity recipeEntity, RecipeForm recipeForm) {
+        recipeEntity.setName(recipeForm.getName());
+        recipeEntity.setCookingMilliseconds(recipeForm.getCookingMilliseconds());
+        recipeEntity.setDescription(recipeForm.getDescription());
+        recipeEntity.setIngredients(mapIngredientsToEntity(recipeForm));
+        return recipeEntity;
     }
 
     private Set<IngredientEntity> mapIngredientsToEntity(RecipeForm recipeForm) {
