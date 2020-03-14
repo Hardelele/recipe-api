@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -15,8 +16,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "ingredients")
-public class IngredientEntity {
+@Table(name = "recipes")
+public class RecipeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,14 +26,19 @@ public class IngredientEntity {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "cooking")
+    private long cookingMilliseconds;
+
+    @OneToMany(mappedBy="recipe")
+    private Set<IngredientEntity> ingredients;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status status;
 
     @Column(name = "timestamp")
     private Timestamp timestamp;
-
-    @ManyToOne
-    @JoinColumn(name="recipe_id", nullable=false)
-    private RecipeEntity recipe;
 }

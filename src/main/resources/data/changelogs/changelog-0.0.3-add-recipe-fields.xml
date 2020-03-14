@@ -8,8 +8,17 @@
         http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
-    <include file="classpath:/data/changelogs/changelog-0.0.1-init-database.xml"/>
-    <include file="classpath:/data/changelogs/changelog-0.0.2-add-status-fields.xml"/>
-    <include file="classpath:/data/changelogs/changelog-0.0.3-add-recipe-fields.xml"/>
+    <changeSet id="recipes-specific-fields" author="hardelele" runOnChange="true">
+        <addColumn tableName="recipes">
+            <column name="description" type="varchar(255)"/>
+            <column name="cooking" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="many-ingredients-to-one-recipe" author="hardelele" runOnChange="true">
+        <addColumn tableName="ingredients">
+            <column name="recipe_id" type="uuid"/>
+        </addColumn>
+    </changeSet>
 
 </databaseChangeLog>
