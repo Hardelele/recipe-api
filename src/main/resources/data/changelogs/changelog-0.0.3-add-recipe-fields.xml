@@ -11,7 +11,7 @@
     <changeSet id="recipes-specific-fields" author="hardelele" runOnChange="true">
         <addColumn tableName="recipes">
             <column name="description" type="varchar(255)"/>
-            <column name="cooking" type="timestamp"/>
+            <column name="cooking" type="bigint"/>
         </addColumn>
     </changeSet>
 

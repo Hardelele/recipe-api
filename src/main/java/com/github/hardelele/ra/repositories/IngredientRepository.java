@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface IngredientRepository extends JpaRepository<IngredientEntity, UUID> {
+    boolean existsByName(String name);
+    IngredientEntity findByName(String name);
 }
