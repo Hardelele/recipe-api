@@ -50,12 +50,12 @@ public class RecipeService {
 
     public RecipeEntity getRecipe(UUID id) {
         return recipeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found recipe by id:" + id, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException("recipe by id:" + id, HttpStatus.NOT_FOUND));
     }
 
     public RecipeEntity updateRecipe(UUID id, RecipeForm recipeForm) {
         RecipeEntity recipeEntity = recipeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found recipe by id:" + id, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException("recipe by id:" + id, HttpStatus.NOT_FOUND));
         return recipeRepository.save(editEntity(recipeEntity, recipeForm));
     }
 
