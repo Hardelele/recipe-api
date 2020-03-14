@@ -1,5 +1,6 @@
 package com.github.hardelele.ra.services;
 
+import com.github.hardelele.ra.exceptions.AlreadyExistException;
 import com.github.hardelele.ra.exceptions.NotFoundException;
 import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.forms.IngredientForm;
@@ -34,39 +35,35 @@ public class IngredientService {
         this.mapper = mapper;
     }
 
-    public List<IngredientTransfer> getAllIngredients() {
-
-        return ingredientRepository.findAll().stream()
-                .map(entity -> mapper.map(entity, IngredientTransfer.class))
-                .collect(Collectors.toList());
+    public List<IngredientEntity> getAllIngredients() {
+        return ingredientRepository.findAll();
     }
 
-    public IngredientTransfer getIngredient(UUID id) {
+    public IngredientEntity getIngredientById(UUID id) {
         return ingredientRepository.findById(id)
-                .map(entity -> mapper.map(entity, IngredientTransfer.class))
                 .orElseThrow(() -> new NotFoundException("Not found ingredient by id:" + id, HttpStatus.NOT_FOUND));
     }
 
-    public IngredientTransfer createIngredient(IngredientForm ingredientForm) {
-
-        IngredientEntity ingredientToSave = IngredientEntity.builder()
-                .id(UUID.randomUUID())
-                .name(ingredientForm.getName())
-                .status(Status.ACTIVE)
-                .timestamp(new Timestamp(date.getTime()))
-                .build();
-
-        ingredientToSave = ingredientRepository.save(ingredientToSave);
-        return mapper.map(ingredientToSave, IngredientTransfer.class);
+    public IngredientEntity getIngredientByName(String name) {
+        if(!isExistByName(name)) {
+            throw new NotFoundException("Not found ingredient by id:" + name, HttpStatus.NOT_FOUND);
+        }
+        return ingredientRepository.findByName(name);
     }
 
-    public IngredientTransfer updateIngredient(UUID id, IngredientForm ingredientForm) {
+    public IngredientEntity createIngredient(IngredientForm ingredientFromForm) {
+        String name = ingredientFromForm.getName();
+        if (isExistByName(name)) {
+            throw new AlreadyExistException("Ingredient by name: " + name + " already exist", HttpStatus.NOT_FOUND);
+        }
+        return ingredientRepository.save(formToEntity(ingredientFromForm));
+    }
 
+    public IngredientEntity updateIngredient(UUID id, IngredientForm ingredientForm) {
         IngredientEntity entity = ingredientRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Not found ingredient by id:" + id, HttpStatus.NOT_FOUND));
         entity.setName(ingredientForm.getName());
-        ingredientRepository.save(entity);
-        return mapper.map(entity, IngredientTransfer.class);
+        return ingredientRepository.save(entity);
     }
 
     public void deleteAllIngredients() {
@@ -75,5 +72,17 @@ public class IngredientService {
 
     public void deleteIngredient(UUID id) {
         ingredientRepository.deleteById(id);
+    }
+
+    public IngredientEntity formToEntity(IngredientForm ingredientForm) {
+        IngredientEntity entity = mapper.map(ingredientForm, IngredientEntity.class);
+        entity.setId(UUID.randomUUID());
+        entity.setTimestamp(new Timestamp(date.getTime()));
+        entity.setStatus(Status.ACTIVE);
+        return entity;
+    }
+
+    public boolean isExistByName(String name){
+        return ingredientRepository.existsByName(name);
     }
 }
