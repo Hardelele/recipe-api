@@ -31,4 +31,8 @@ public class IngredientEntity {
 
     @Column(name = "timestamp")
     private Timestamp timestamp;
+
+    @ManyToOne
+    @JoinColumn(name="recipe_id", nullable=false)
+    private RecipeEntity recipe;
 }
