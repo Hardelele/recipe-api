@@ -7,10 +7,10 @@ import org.springframework.http.HttpStatus;
 public class NotFoundException extends RuntimeException {
 
     private HttpStatus httpStatus;
-    private String message;
+    private String message = "Not found ";
 
     public NotFoundException(String message, HttpStatus httpStatus) {
         this.httpStatus = httpStatus;
-        this.message = message;
+        this.message = this.message + message;
     }
 }
