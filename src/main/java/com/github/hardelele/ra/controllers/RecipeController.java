@@ -38,17 +38,17 @@ public class RecipeController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public RecipeTransfer getRecipe(@PathVariable UUID id) {
         return mapper.map(recipeService.getRecipe(id), RecipeTransfer.class);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public RecipeTransfer editRecipe(@PathVariable UUID id, @RequestBody RecipeForm recipe) {
         return mapper.map(recipeService.updateRecipe(id, recipe), RecipeTransfer.class);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public void deleteRecipe(@PathVariable UUID id) {
         recipeService.deleteRecipe(id);
     }
