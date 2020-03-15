@@ -1,6 +1,5 @@
-package com.github.hardelele.ra.services.cache;
+package com.github.hardelele.ra.utils.cache;
 
-import com.github.hardelele.ra.services.cache.keys.CacheKey;
 import com.google.common.cache.Cache;
 import org.springframework.stereotype.Component;
 
@@ -27,5 +26,17 @@ public class DoubleKeyCache<V> {
         entityCacheById.put(id, value);
         String name = key.getName();
         entityCacheByName.put(name, value);
+    }
+
+    public void delete(CacheKey key) {
+        UUID id = key.getId();
+        entityCacheById.put(id, null);
+        String name = key.getName();
+        entityCacheByName.put(name, null);
+    }
+
+    public void cleanUp() {
+        entityCacheById.cleanUp();
+        entityCacheByName.cleanUp();
     }
 }
