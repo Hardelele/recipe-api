@@ -8,6 +8,8 @@ import com.github.hardelele.ra.models.forms.RecipeForm;
 import com.github.hardelele.ra.repositories.RecipeRepository;
 import com.github.hardelele.ra.utils.enums.Status;
 import org.dozer.Mapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class RecipeService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
     private final RecipeRepository recipeRepository;
 
@@ -50,12 +54,12 @@ public class RecipeService {
 
     public RecipeEntity getRecipe(UUID id) {
         return recipeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found recipe by id:" + id, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException("recipe by id:" + id, HttpStatus.NOT_FOUND));
     }
 
     public RecipeEntity updateRecipe(UUID id, RecipeForm recipeForm) {
         RecipeEntity recipeEntity = recipeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found recipe by id:" + id, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException("recipe by id:" + id, HttpStatus.NOT_FOUND));
         return recipeRepository.save(editEntity(recipeEntity, recipeForm));
     }
 

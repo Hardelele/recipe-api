@@ -4,83 +4,90 @@ import com.github.hardelele.ra.exceptions.AlreadyExistException;
 import com.github.hardelele.ra.exceptions.NotFoundException;
 import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.forms.IngredientForm;
-import com.github.hardelele.ra.repositories.IngredientRepository;
-import com.github.hardelele.ra.utils.enums.Status;
+import com.github.hardelele.ra.services.cache.IngredientCacheService;
+import com.github.hardelele.ra.services.database.IngredientDatabaseService;
+import com.github.hardelele.ra.utils.cache.CacheKey;
+import com.github.hardelele.ra.utils.mapping.IngredientMapper;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class IngredientService {
 
-    private final IngredientRepository ingredientRepository;
+    private final IngredientCacheService ingredientCacheService;
 
-    private final Mapper mapper;
+    private final IngredientDatabaseService ingredientDatabaseService;
 
-    private final Date date = new Date();;
+    private final IngredientMapper ingredientMapper;
 
     @Autowired
-    public IngredientService(IngredientRepository ingredientRepository, Mapper mapper) {
-        this.ingredientRepository = ingredientRepository;
-        this.mapper = mapper;
+    public IngredientService(IngredientCacheService ingredientCacheService,
+                             IngredientDatabaseService ingredientDatabaseService,
+                             IngredientMapper ingredientMapper) {
+        this.ingredientCacheService = ingredientCacheService;
+        this.ingredientDatabaseService = ingredientDatabaseService;
+        this.ingredientMapper = ingredientMapper;
     }
 
     public List<IngredientEntity> getAllIngredients() {
-        return ingredientRepository.findAll();
+        return ingredientDatabaseService.getAllIngredients().stream()
+                .map(ingredientCacheService::putInCache)
+                .collect(Collectors.toList());
     }
 
     public IngredientEntity getIngredientById(UUID id) {
-        return ingredientRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found ingredient by id:" + id, HttpStatus.NOT_FOUND));
+        try {
+            return ingredientCacheService.pullFormCacheById(id);
+        } catch (NullPointerException ignored) {
+            IngredientEntity ingredientFromDatabase = ingredientDatabaseService.pullFromDatabaseById(id);
+            return ingredientCacheService.putInCache(ingredientFromDatabase);
+        }
     }
 
     public IngredientEntity getIngredientByName(String name) {
-        if(!isExistByName(name)) {
-            throw new NotFoundException("Not found ingredient by id:" + name, HttpStatus.NOT_FOUND);
+        try {
+            return ingredientCacheService.pullFormCacheByName(name);
+        } catch (NullPointerException ignored) {
+            IngredientEntity ingredientFromDatabase = ingredientDatabaseService.pullFromDatabaseByName(name);
+            return ingredientCacheService.putInCache(ingredientFromDatabase);
         }
-        return ingredientRepository.findByName(name);
     }
 
     public IngredientEntity createIngredient(IngredientForm ingredientFromForm) {
         String name = ingredientFromForm.getName();
         if (isExistByName(name)) {
-            throw new AlreadyExistException("Ingredient by name: " + name + " already exist", HttpStatus.NOT_FOUND);
+            throw new AlreadyExistException("Ingredient by name: " + name, HttpStatus.BAD_REQUEST);
         }
-        return ingredientRepository.save(formToEntity(ingredientFromForm));
+        return putInDatabaseAndCache(ingredientMapper.toEntity(ingredientFromForm));
     }
 
     public IngredientEntity updateIngredient(UUID id, IngredientForm ingredientForm) {
-        IngredientEntity entity = ingredientRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found ingredient by id:" + id, HttpStatus.NOT_FOUND));
-        entity.setName(ingredientForm.getName());
-        return ingredientRepository.save(entity);
-    }
-
-    public void deleteAllIngredients() {
-        ingredientRepository.deleteAll();
+        IngredientEntity ingredientEntity = getIngredientById(id);
+        ingredientEntity.setName(ingredientForm.getName());
+        return putInDatabaseAndCache(ingredientEntity);
     }
 
     public void deleteIngredient(UUID id) {
-        ingredientRepository.deleteById(id);
+        CacheKey cacheKey = ingredientDatabaseService.deleteIngredient(id);
+        ingredientCacheService.deleteFromCache(cacheKey);
     }
 
-    public IngredientEntity formToEntity(IngredientForm ingredientForm) {
-        IngredientEntity entity = mapper.map(ingredientForm, IngredientEntity.class);
-        entity.setId(UUID.randomUUID());
-        entity.setTimestamp(new Timestamp(date.getTime()));
-        entity.setStatus(Status.ACTIVE);
-        return entity;
+    public void deleteAllIngredients() {
+        ingredientDatabaseService.deleteAllIngredients();
+        ingredientCacheService.cleanUp();
     }
 
-    public boolean isExistByName(String name){
-        return ingredientRepository.existsByName(name);
+    private IngredientEntity putInDatabaseAndCache(IngredientEntity ingredientToSave) {
+        return ingredientCacheService.putInCache(ingredientDatabaseService.putInDatabase(ingredientToSave));
+    }
+
+    public boolean isExistByName(String name) {
+        return ingredientDatabaseService.isExistByName(name);
     }
 }

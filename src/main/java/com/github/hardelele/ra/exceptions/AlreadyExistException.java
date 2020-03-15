@@ -7,10 +7,10 @@ import org.springframework.http.HttpStatus;
 public class AlreadyExistException extends RuntimeException {
 
     private HttpStatus httpStatus;
-    private String message;
+    private String message = " already exist";
 
     public AlreadyExistException(String message, HttpStatus httpStatus) {
         this.httpStatus = httpStatus;
-        this.message = message;
+        this.message = message + this.message;
     }
 }
