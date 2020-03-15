@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -34,7 +35,11 @@ public class IngredientDatabaseService {
     }
 
     public void deleteAllIngredients() {
-        ingredientRepository.deleteAll();
+        ingredientRepository.findAll()
+                .forEach(ingredientEntity -> {
+                    UUID id = ingredientEntity.getId();
+                    deleteIngredient(id);
+                });
     }
 
     public CacheKey deleteIngredient(UUID id) {
