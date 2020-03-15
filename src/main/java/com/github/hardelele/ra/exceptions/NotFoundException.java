@@ -6,11 +6,13 @@ import org.springframework.http.HttpStatus;
 @Data
 public class NotFoundException extends RuntimeException {
 
+    private String NOT_FOUND = "Not found ";
+
     private HttpStatus httpStatus;
-    private String message = "Not found ";
+    private String message;
 
     public NotFoundException(String message, HttpStatus httpStatus) {
         this.httpStatus = httpStatus;
-        this.message = this.message + message;
+        this.message = NOT_FOUND + message;
     }
 }

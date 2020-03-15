@@ -46,13 +46,21 @@ public class IngredientService {
     }
 
     public IngredientEntity getIngredientById(UUID id) {
+
         try {
+            LOGGER.info("Pulling ingredient entity form cache by id: {}", id.toString());
             return pullFormCacheById(id);
-        } catch (NullPointerException throwable) {
-            IngredientEntity ingredientEntity = ingredientRepository.findById(id)
-                    .orElseThrow(() -> new NotFoundException("ingredient by id:" + id, HttpStatus.NOT_FOUND));
-            return putInCache(ingredientEntity);
-        }
+        } catch (NullPointerException ignored) {}
+
+        LOGGER.info("Pulling ingredient entity form database by id: {}", id.toString());
+        IngredientEntity ingredientEntity = ingredientRepository.findById(id)
+                .orElseThrow(() -> {
+                    LOGGER.info("Can not find nothing in database by id: {}", id.toString());
+                    throw new NotFoundException("ingredient by id: " + id, HttpStatus.NOT_FOUND);
+                });
+
+        LOGGER.info("Got entity from database by id: {}, cache = {}", id.toString(), ingredientEntity);
+        return putInCache(ingredientEntity);
     }
 
     public IngredientEntity getIngredientByName(String name) {
@@ -65,7 +73,7 @@ public class IngredientService {
     public IngredientEntity createIngredient(IngredientForm ingredientFromForm) {
         String name = ingredientFromForm.getName();
         if (isExistByName(name)) {
-            throw new AlreadyExistException("Ingredient by name: " + name, HttpStatus.NOT_FOUND);
+            throw new AlreadyExistException("Ingredient by name: " + name, HttpStatus.BAD_REQUEST);
         }
         return ingredientRepository.save(formToEntity(ingredientFromForm));
     }
@@ -87,7 +95,6 @@ public class IngredientService {
 
     private IngredientEntity pullFormCacheById(UUID id) {
 
-        LOGGER.info("Pulling ingredient entity form cache by id: {}", id.toString());
         IngredientEntity ingredientFromCache = ingredientsCache.getIfPresent(id);
 
         if (ingredientFromCache == null) {
@@ -95,7 +102,7 @@ public class IngredientService {
             throw new NullPointerException();
         }
 
-        LOGGER.info("Got cache by id: {}, cache = {}", id.toString(), ingredientFromCache);
+        LOGGER.info("Got entity form cache by id: {}, cache = {}", id.toString(), ingredientFromCache);
         return ingredientFromCache;
     }
 
