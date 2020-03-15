@@ -1,19 +1,19 @@
 package com.github.hardelele.ra.services;
 
 import com.github.hardelele.ra.exceptions.AlreadyExistException;
-import com.github.hardelele.ra.exceptions.NotFoundException;
 import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.forms.IngredientForm;
+import com.github.hardelele.ra.models.forms.RecipeForm;
 import com.github.hardelele.ra.services.cache.IngredientCacheService;
 import com.github.hardelele.ra.services.database.IngredientDatabaseService;
 import com.github.hardelele.ra.utils.cache.CacheKey;
 import com.github.hardelele.ra.utils.mapping.IngredientMapper;
-import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -89,5 +89,20 @@ public class IngredientService {
 
     public boolean isExistByName(String name) {
         return ingredientDatabaseService.isExistByName(name);
+    }
+
+    public Set<IngredientEntity> mapIngredientsToEntity(RecipeForm recipeForm) {
+        return recipeForm.getIngredients().stream()
+                .map(this::getOrCreateIngredient)
+                .collect(Collectors.toSet());
+    }
+
+    private IngredientEntity getOrCreateIngredient(IngredientForm ingredientForm) {
+        String name = ingredientForm.getName();
+        if (!isExistByName(name)) {
+            return createIngredient(ingredientForm);
+        } else {
+            return getIngredientByName(name);
+        }
     }
 }
