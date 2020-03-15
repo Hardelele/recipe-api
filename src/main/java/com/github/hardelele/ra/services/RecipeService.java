@@ -3,11 +3,11 @@ package com.github.hardelele.ra.services;
 import com.github.hardelele.ra.exceptions.NotFoundException;
 import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.entities.RecipeEntity;
-import com.github.hardelele.ra.models.forms.IngredientForm;
 import com.github.hardelele.ra.models.forms.RecipeForm;
-import com.github.hardelele.ra.repositories.RecipeRepository;
-import com.github.hardelele.ra.utils.enums.Status;
-import org.dozer.Mapper;
+import com.github.hardelele.ra.services.cache.RecipeCacheService;
+import com.github.hardelele.ra.services.database.RecipeDatabaseService;
+import com.github.hardelele.ra.utils.cache.CacheKey;
+import com.github.hardelele.ra.utils.mapping.RecipeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -28,78 +26,68 @@ public class RecipeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
-    private final RecipeRepository recipeRepository;
+    private final RecipeDatabaseService recipeDatabaseService;
+
+    private final RecipeCacheService recipeCacheService;
 
     private final IngredientService ingredientService;
 
-    private final Mapper mapper;
-
-    private final Date date = new Date();;
+    private final RecipeMapper recipeMapper;
 
     @Autowired
-    public RecipeService(RecipeRepository recipeRepository, IngredientService ingredientService, Mapper mapper) {
-        this.recipeRepository = recipeRepository;
+    public RecipeService(RecipeDatabaseService recipeDatabaseService,
+                         RecipeCacheService recipeCacheService,
+                         IngredientService ingredientService,
+                         RecipeMapper recipeMapper) {
+        this.recipeDatabaseService = recipeDatabaseService;
+        this.recipeCacheService = recipeCacheService;
         this.ingredientService = ingredientService;
-        this.mapper = mapper;
+        this.recipeMapper = recipeMapper;
     }
 
     public RecipeEntity createRecipe(RecipeForm recipeForm) {
-        RecipeEntity recipeToSave = formToEntity(recipeForm);
-        return recipeRepository.save(recipeToSave);
+        Set<IngredientEntity> ingredients = getIngredients(recipeForm);
+        RecipeEntity recipeToSave = recipeMapper.formToEntity(recipeForm, ingredients);
+        return putInDatabaseAndCache(recipeToSave);
     }
 
     public List<RecipeEntity> getAllRecipes() {
-        return recipeRepository.findAll();
+        return recipeDatabaseService.getAllRecipes().stream()
+                .map(recipeCacheService::putInCache)
+                .collect(Collectors.toList());
     }
 
     public RecipeEntity getRecipe(UUID id) {
-        return recipeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("recipe by id:" + id, HttpStatus.NOT_FOUND));
+        try {
+            return recipeCacheService.pullFormCacheById(id);
+        } catch (NullPointerException ignored) {
+            RecipeEntity recipeFromDatabase = recipeDatabaseService.pullFromDatabaseById(id);
+            return recipeCacheService.putInCache(recipeFromDatabase);
+        }
     }
 
     public RecipeEntity updateRecipe(UUID id, RecipeForm recipeForm) {
-        RecipeEntity recipeEntity = recipeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("recipe by id:" + id, HttpStatus.NOT_FOUND));
-        return recipeRepository.save(editEntity(recipeEntity, recipeForm));
+        RecipeEntity recipeEntity = getRecipe(id);
+        Set<IngredientEntity> ingredients = getIngredients(recipeForm);
+        RecipeEntity recipeToSave = recipeMapper.editEntity(recipeEntity, recipeForm, ingredients);
+        return putInDatabaseAndCache(recipeToSave);
     }
 
     public void deleteRecipe(UUID id) {
-        recipeRepository.deleteById(id);
+        CacheKey cacheKey = recipeDatabaseService.deleteRecipe(id);
+        recipeCacheService.deleteFromCache(cacheKey);
     }
 
     public void deleteAllRecipes() {
-        recipeRepository.deleteAll();
+        recipeDatabaseService.deleteAllRecipes();
+        recipeCacheService.cleanUp();
     }
 
-    public RecipeEntity formToEntity(RecipeForm recipeForm) {
-        RecipeEntity recipeToSave = mapper.map(recipeForm, RecipeEntity.class);
-        recipeToSave.setIngredients(mapIngredientsToEntity(recipeForm));
-        recipeToSave.setId(UUID.randomUUID());
-        recipeToSave.setStatus(Status.ACTIVE);
-        recipeToSave.setTimestamp(new Timestamp(date.getTime()));
-        return recipeToSave;
+    private RecipeEntity putInDatabaseAndCache(RecipeEntity recipeToSave) {
+        return recipeCacheService.putInCache(recipeDatabaseService.putInDatabase(recipeToSave));
     }
 
-    private RecipeEntity editEntity(RecipeEntity recipeEntity, RecipeForm recipeForm) {
-        recipeEntity.setName(recipeForm.getName());
-        recipeEntity.setCookingMilliseconds(recipeForm.getCookingMilliseconds());
-        recipeEntity.setDescription(recipeForm.getDescription());
-        recipeEntity.setIngredients(mapIngredientsToEntity(recipeForm));
-        return recipeEntity;
-    }
-
-    private Set<IngredientEntity> mapIngredientsToEntity(RecipeForm recipeForm) {
-        return recipeForm.getIngredients().stream()
-                .map(this::getOrCreateIngredient)
-                .collect(Collectors.toSet());
-    }
-
-    private IngredientEntity getOrCreateIngredient(IngredientForm ingredientForm) {
-        String name = ingredientForm.getName();
-        if (!ingredientService.isExistByName(name)) {
-            return ingredientService.createIngredient(ingredientForm);
-        } else {
-            return ingredientService.getIngredientByName(name);
-        }
+    private Set<IngredientEntity> getIngredients(RecipeForm recipeForm) {
+        return ingredientService.mapIngredientsToEntity(recipeForm);
     }
 }
