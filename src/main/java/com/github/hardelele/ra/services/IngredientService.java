@@ -31,8 +31,6 @@ public class IngredientService {
 
     private final Mapper mapper;
 
-    private final Date date = new Date();
-
     private final DoubleKeyCache<IngredientEntity> ingredientsCache = new DoubleKeyCache<>();
 
     @Autowired
@@ -46,21 +44,11 @@ public class IngredientService {
     }
 
     public IngredientEntity getIngredientById(UUID id) {
-
         try {
-            LOGGER.info("Pulling ingredient entity form cache by id: {}", id.toString());
             return pullFormCacheById(id);
-        } catch (NullPointerException ignored) {}
-
-        LOGGER.info("Pulling ingredient entity form database by id: {}", id.toString());
-        IngredientEntity ingredientEntity = ingredientRepository.findById(id)
-                .orElseThrow(() -> {
-                    LOGGER.info("Can not find nothing in database by id: {}", id.toString());
-                    throw new NotFoundException("ingredient by id: " + id, HttpStatus.NOT_FOUND);
-                });
-
-        LOGGER.info("Got entity from database by id: {}, cache = {}", id.toString(), ingredientEntity);
-        return putInCache(ingredientEntity);
+        } catch (NullPointerException ignored) {
+            return putInCache(pullFromDatabaseById(id));
+        }
     }
 
     public IngredientEntity getIngredientByName(String name) {
@@ -79,10 +67,14 @@ public class IngredientService {
     }
 
     public IngredientEntity updateIngredient(UUID id, IngredientForm ingredientForm) {
-        IngredientEntity entity = ingredientRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("ingredient by id:" + id, HttpStatus.NOT_FOUND));
-        entity.setName(ingredientForm.getName());
-        return ingredientRepository.save(entity);
+        IngredientEntity ingredientEntity;
+        try {
+            ingredientEntity = pullFormCacheById(id);
+        } catch (NullPointerException ignored) {
+            ingredientEntity = pullFromDatabaseById(id);
+        }
+        ingredientEntity.setName(ingredientForm.getName());
+        return putInDatabase(ingredientEntity);
     }
 
     public void deleteAllIngredients() {
@@ -93,8 +85,22 @@ public class IngredientService {
         ingredientRepository.deleteById(id);
     }
 
+    private IngredientEntity pullFromDatabaseById(UUID id) {
+
+        LOGGER.info("Pulling ingredient entity form database by id: {}", id.toString());
+        IngredientEntity ingredientEntity = ingredientRepository.findById(id)
+                .orElseThrow(() -> {
+                    LOGGER.info("Can not find nothing in database by id: {}", id.toString());
+                    throw new NotFoundException("ingredient by id: " + id, HttpStatus.NOT_FOUND);
+                });
+
+        LOGGER.info("Got entity from database by id: {}, cache = {}", id.toString(), ingredientEntity);
+        return ingredientEntity;
+    }
+
     private IngredientEntity pullFormCacheById(UUID id) {
 
+        LOGGER.info("Pulling ingredient entity form cache by id: {}", id.toString());
         IngredientEntity ingredientFromCache = ingredientsCache.getIfPresent(id);
 
         if (ingredientFromCache == null) {
@@ -107,16 +113,19 @@ public class IngredientService {
     }
 
     private IngredientEntity putInCache(IngredientEntity ingredientEntity) {
-
         CacheKey cacheKey = new CacheKey(ingredientEntity.getId(),ingredientEntity.getName());
-
         LOGGER.info("Putting ingredient entity in cache: {}", ingredientEntity);
         ingredientsCache.put(cacheKey, ingredientEntity);
-
         return ingredientEntity;
     }
 
+    private IngredientEntity putInDatabase(IngredientEntity ingredientToSave) {
+        ingredientRepository.save(ingredientToSave);
+        return putInCache(ingredientToSave);
+    }
+
     public IngredientEntity formToEntity(IngredientForm ingredientForm) {
+        Date date = new Date();
         IngredientEntity entity = mapper.map(ingredientForm, IngredientEntity.class);
         entity.setId(UUID.randomUUID());
         entity.setTimestamp(new Timestamp(date.getTime()));
