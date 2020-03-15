@@ -1,4 +1,4 @@
-package com.github.hardelele.ra.services.cache.keys;
+package com.github.hardelele.ra.utils.cache;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

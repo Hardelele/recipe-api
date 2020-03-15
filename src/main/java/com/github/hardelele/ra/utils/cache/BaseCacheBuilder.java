@@ -1,4 +1,4 @@
-package com.github.hardelele.ra.services.cache;
+package com.github.hardelele.ra.utils.cache;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
