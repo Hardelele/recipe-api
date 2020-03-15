@@ -59,6 +59,4 @@ public class IngredientCacheService {
         ingredientsCache.put(cacheKey, ingredientEntity);
         return ingredientEntity;
     }
-
-
 }
