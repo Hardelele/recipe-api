@@ -9,6 +9,8 @@ import com.github.hardelele.ra.services.cache.DoubleKeyCache;
 import com.github.hardelele.ra.services.cache.keys.CacheKey;
 import com.github.hardelele.ra.utils.enums.Status;
 import org.dozer.Mapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,9 +25,14 @@ import java.util.UUID;
 @Transactional
 public class IngredientService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(IngredientService.class);
+
     private final IngredientRepository ingredientRepository;
+
     private final Mapper mapper;
+
     private final Date date = new Date();
+
     private final DoubleKeyCache<IngredientEntity> ingredientsCache = new DoubleKeyCache<>();
 
     @Autowired
@@ -79,16 +86,26 @@ public class IngredientService {
     }
 
     private IngredientEntity pullFormCacheById(UUID id) {
+
+        LOGGER.info("Pulling ingredient entity form cache by id: {}", id.toString());
         IngredientEntity ingredientFromCache = ingredientsCache.getIfPresent(id);
+
         if (ingredientFromCache == null) {
+            LOGGER.info("Got empty cache by id: {}", id.toString());
             throw new NullPointerException();
         }
+
+        LOGGER.info("Got cache by id: {}, cache = {}", id.toString(), ingredientFromCache);
         return ingredientFromCache;
     }
 
     private IngredientEntity putInCache(IngredientEntity ingredientEntity) {
+
         CacheKey cacheKey = new CacheKey(ingredientEntity.getId(),ingredientEntity.getName());
+
+        LOGGER.info("Putting ingredient entity in cache: {}", ingredientEntity);
         ingredientsCache.put(cacheKey, ingredientEntity);
+
         return ingredientEntity;
     }
 
