@@ -1,6 +1,5 @@
 package com.github.hardelele.ra.services.cache;
 
-import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.entities.RecipeEntity;
 import com.github.hardelele.ra.services.IngredientService;
 import com.github.hardelele.ra.utils.cache.CacheKey;
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-public class RecipeCacheService {
+public class RecipeCacheService implements CacheService<RecipeEntity> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IngredientService.class);
 
@@ -20,44 +19,39 @@ public class RecipeCacheService {
 
     public void cleanUp() {
         recipesCache.cleanUp();
+        LOGGER.info("Clean up cache");
     }
 
-    public void deleteFromCache(CacheKey cacheKey) {
+    @Override
+    public void deleteByCacheKey(CacheKey cacheKey) {
         recipesCache.delete(cacheKey);
+        LOGGER.info("Delete cache: cacheKey = {}", cacheKey);
     }
 
-    public RecipeEntity pullFormCacheByName(String name) {
-
-        LOGGER.info("Pulling recipe entity form cache by name: {}", name);
-        RecipeEntity recipeEntity = recipesCache.getIfPresent(name);
-
-        if (recipeEntity == null) {
-            LOGGER.info("Got empty cache by name: {}", name);
-            throw new NullPointerException();
-        }
-
-        LOGGER.info("Got entity form cache by name: {}, cache = {}", name, recipeEntity);
-        return recipeEntity;
+    @Override
+    public RecipeEntity getByName(String name) {
+        LOGGER.info("Unusable method");
+        return null;
     }
 
-    public RecipeEntity pullFormCacheById(UUID id) {
-
-        LOGGER.info("Pulling recipe entity form cache by id: {}", id.toString());
+    @Override
+    public RecipeEntity getById(UUID id) {
+        LOGGER.info("Check cache: id = {}", id.toString());
         RecipeEntity recipeFromCache = recipesCache.getIfPresent(id);
 
         if (recipeFromCache == null) {
-            LOGGER.info("Got empty cache by id: {}", id.toString());
+            LOGGER.info("Empty cache: id = {}", id.toString());
             throw new NullPointerException();
         }
 
-        LOGGER.info("Got entity form cache by id: {}, cache = {}", id.toString(), recipeFromCache);
+        LOGGER.info("Get cache: id = {}, recipe = {}", id.toString(), recipeFromCache);
         return recipeFromCache;
     }
 
-    public RecipeEntity putInCache(RecipeEntity recipeEntity) {
-        CacheKey cacheKey = new CacheKey(recipeEntity.getId(),recipeEntity.getName());
-        LOGGER.info("Putting recipe entity in cache: {}", recipeEntity);
-        recipesCache.put(cacheKey, recipeEntity);
-        return recipeEntity;
+    @Override
+    public RecipeEntity add(CacheKey cacheKey, RecipeEntity entity) {
+        recipesCache.put(cacheKey, entity);
+        LOGGER.info("Add cache: recipe = {}", entity);
+        return entity;
     }
 }
