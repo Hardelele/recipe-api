@@ -36,26 +36,29 @@ public class IngredientService {
     }
 
     public List<IngredientEntity> getAllIngredients() {
-        return ingredientDatabaseService.getAllIngredients().stream()
-                .map(ingredientCacheService::putInCache)
-                .collect(Collectors.toList());
+        return ingredientDatabaseService.getAll().stream().map(ingredientToSave -> {
+            CacheKey cacheKey = getCacheKey(ingredientToSave);
+            return ingredientCacheService.add(cacheKey, ingredientToSave);
+        }).collect(Collectors.toList());
     }
 
     public IngredientEntity getIngredientById(UUID id) {
         try {
-            return ingredientCacheService.pullFormCacheById(id);
+            return ingredientCacheService.getById(id);
         } catch (NullPointerException ignored) {
-            IngredientEntity ingredientFromDatabase = ingredientDatabaseService.pullFromDatabaseById(id);
-            return ingredientCacheService.putInCache(ingredientFromDatabase);
+            IngredientEntity ingredientFromDatabase = ingredientDatabaseService.getById(id);
+            CacheKey cacheKey = getCacheKey(ingredientFromDatabase);
+            return ingredientCacheService.add(cacheKey, ingredientFromDatabase);
         }
     }
 
     public IngredientEntity getIngredientByName(String name) {
         try {
-            return ingredientCacheService.pullFormCacheByName(name);
+            return ingredientCacheService.getByName(name);
         } catch (NullPointerException ignored) {
-            IngredientEntity ingredientFromDatabase = ingredientDatabaseService.pullFromDatabaseByName(name);
-            return ingredientCacheService.putInCache(ingredientFromDatabase);
+            IngredientEntity ingredientFromDatabase = ingredientDatabaseService.getByName(name);
+            CacheKey cacheKey = getCacheKey(ingredientFromDatabase);
+            return ingredientCacheService.add(cacheKey, ingredientFromDatabase);
         }
     }
 
@@ -74,17 +77,19 @@ public class IngredientService {
     }
 
     public void deleteIngredient(UUID id) {
-        CacheKey cacheKey = ingredientDatabaseService.deleteIngredient(id);
-        ingredientCacheService.deleteFromCache(cacheKey);
+        CacheKey cacheKey = ingredientDatabaseService.delete(id);
+        ingredientCacheService.deleteByCacheKey(cacheKey);
     }
 
     public void deleteAllIngredients() {
-        ingredientDatabaseService.deleteAllIngredients();
+        ingredientDatabaseService.cleanUp();
         ingredientCacheService.cleanUp();
     }
 
     private IngredientEntity putInDatabaseAndCache(IngredientEntity ingredientToSave) {
-        return ingredientCacheService.putInCache(ingredientDatabaseService.putInDatabase(ingredientToSave));
+        CacheKey cacheKey = getCacheKey(ingredientToSave);
+        ingredientToSave = ingredientDatabaseService.add(ingredientToSave);
+        return ingredientCacheService.add(cacheKey, ingredientToSave);
     }
 
     public boolean isExistByName(String name) {
@@ -95,6 +100,10 @@ public class IngredientService {
         return recipeForm.getIngredients().stream()
                 .map(this::getOrCreateIngredient)
                 .collect(Collectors.toSet());
+    }
+
+    private CacheKey getCacheKey(IngredientEntity ingredient) {
+        return new CacheKey(ingredient.getId(),ingredient.getName());
     }
 
     private IngredientEntity getOrCreateIngredient(IngredientForm ingredientForm) {
