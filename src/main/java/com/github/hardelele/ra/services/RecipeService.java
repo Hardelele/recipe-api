@@ -3,16 +3,17 @@ package com.github.hardelele.ra.services;
 import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.entities.RecipeEntity;
 import com.github.hardelele.ra.models.forms.RecipeForm;
+import com.github.hardelele.ra.models.transfers.RecipeTransfer;
 import com.github.hardelele.ra.services.cache.RecipeCacheService;
 import com.github.hardelele.ra.services.database.RecipeDatabaseService;
 import com.github.hardelele.ra.utils.cache.CacheKey;
 import com.github.hardelele.ra.utils.mapping.RecipeMapper;
+import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ public class RecipeService {
 
     private final RecipeMapper recipeMapper;
 
+
     @Autowired
     public RecipeService(RecipeDatabaseService recipeDatabaseService,
                          RecipeCacheService recipeCacheService,
@@ -40,9 +42,12 @@ public class RecipeService {
     }
 
     public RecipeEntity createRecipe(RecipeForm recipeForm) {
-        Set<IngredientEntity> ingredients = getIngredients(recipeForm);
-        RecipeEntity recipeToSave = recipeMapper.formToEntity(recipeForm, ingredients);
-        return putInDatabaseAndCache(recipeToSave);
+        List<IngredientEntity> ingredients = getIngredients(recipeForm);
+        RecipeEntity recipeEntity = recipeMapper.formToEntity(recipeForm, ingredients);
+        for (IngredientEntity ingredientEntity : recipeEntity.getIngredients()) {
+            ingredientEntity.setRecipe(recipeEntity);
+        }
+        return putInDatabaseAndCache(recipeEntity);
     }
 
     public List<RecipeEntity> getAllRecipes() {
@@ -53,18 +58,21 @@ public class RecipeService {
     }
 
     public RecipeEntity getRecipe(UUID id) {
+        RecipeEntity recipeFromDatabase;
         try {
-            return recipeCacheService.getById(id);
+            recipeFromDatabase = recipeCacheService.getById(id);
         } catch (NullPointerException ignored) {
-            RecipeEntity recipeFromDatabase = recipeDatabaseService.getById(id);
+            recipeFromDatabase = recipeDatabaseService.getById(id);
             CacheKey cacheKey = getCacheKey(recipeFromDatabase);
-            return recipeCacheService.add(cacheKey, recipeFromDatabase);
+            recipeCacheService.add(cacheKey, recipeFromDatabase);
         }
+        recipeFromDatabase.setIngredients(ingredientService.getAllByRecipeId(recipeFromDatabase.getId()));
+        return recipeFromDatabase;
     }
 
     public RecipeEntity updateRecipe(UUID id, RecipeForm recipeForm) {
         RecipeEntity recipeEntity = getRecipe(id);
-        Set<IngredientEntity> ingredients = getIngredients(recipeForm);
+        List<IngredientEntity> ingredients = getIngredients(recipeForm);
         RecipeEntity recipeToSave = recipeMapper.editEntity(recipeEntity, recipeForm, ingredients);
         return putInDatabaseAndCache(recipeToSave);
     }
@@ -89,7 +97,7 @@ public class RecipeService {
         return recipeCacheService.add(cacheKey, recipeToSave);
     }
 
-    private Set<IngredientEntity> getIngredients(RecipeForm recipeForm) {
+    private List<IngredientEntity> getIngredients(RecipeForm recipeForm) {
         return ingredientService.mapIngredientsToEntity(recipeForm);
     }
 }

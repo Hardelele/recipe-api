@@ -1,5 +1,6 @@
 package com.github.hardelele.ra.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.hardelele.ra.utils.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,8 +34,9 @@ public class RecipeEntity {
     @Column(name = "cooking")
     private long cookingMilliseconds;
 
-    @OneToMany(mappedBy="recipe")
-    private Set<IngredientEntity> ingredients;
+    @JsonIgnore
+    @OneToMany(mappedBy = "recipe", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<IngredientEntity> ingredients;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
