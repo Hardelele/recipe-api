@@ -1,6 +1,6 @@
 # recipe-api
 Stateless REST api service for writing and store recipes <br>
-Demo version: ...
+Demo version: http://recipe-api-demo7.apps.us-east-1.starter.openshift-online.com/api/v1/swagger-ui.html
 ## How to install? 
 ### linux:
 First one, download and move into project directory. <br>
@@ -26,5 +26,13 @@ Docker deploy project and database postgresql.
 Everything should start successfully if you haven't any busy ports from follow list: 
 - `5432`
 - `8080` <br>
+#### Division of responsibility
+Working with database and cache in different services. Use three types of models: Entities, Forms and Transfers - respectively for database and logic, input and output. 
 #### API
 Any endpoint starts from `api/v1`
+- swagger: `/swagger-ui.html` <br>
+Recipes:  `api/v1/recipes`
+- POST: create - `/` + body
+- GET: by id - `/id`, all - `/`
+- PUT: edit by id - `/id` + body
+- DELETE: by id - `/id`, clean un - `/clearAll`
