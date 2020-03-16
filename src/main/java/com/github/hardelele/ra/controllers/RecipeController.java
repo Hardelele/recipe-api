@@ -1,5 +1,6 @@
 package com.github.hardelele.ra.controllers;
 
+import com.github.hardelele.ra.models.entities.RecipeEntity;
 import com.github.hardelele.ra.models.forms.RecipeForm;
 import com.github.hardelele.ra.models.transfers.RecipeTransfer;
 import com.github.hardelele.ra.services.RecipeService;
