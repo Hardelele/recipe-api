@@ -1,0 +1,17 @@
+language: java
+jdk: openjdk11
+install: true
+
+cache:
+  directories:
+    - $HOME/.m2
+
+script:
+  - mvn clean test
+
+notifications:
+  email:
+    recipients:
+      - hardelele@yahoo.com
+    on_success: never
+    on_failure: always
