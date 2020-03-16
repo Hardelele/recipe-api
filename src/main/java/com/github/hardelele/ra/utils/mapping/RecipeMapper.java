@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,7 +24,7 @@ public class RecipeMapper {
         this.mapper = mapper;
     }
 
-    public RecipeEntity formToEntity(RecipeForm recipeForm, Set<IngredientEntity> ingredients) {
+    public RecipeEntity formToEntity(RecipeForm recipeForm, List<IngredientEntity> ingredients) {
         Date date = new Date();
         RecipeEntity recipeToSave = mapper.map(recipeForm, RecipeEntity.class);
         recipeToSave.setIngredients(ingredients);
@@ -35,7 +36,7 @@ public class RecipeMapper {
 
     public RecipeEntity editEntity(RecipeEntity recipeEntity,
                                     RecipeForm recipeForm,
-                                    Set<IngredientEntity> ingredients) {
+                                    List<IngredientEntity> ingredients) {
         recipeEntity.setName(recipeForm.getName());
         recipeEntity.setCookingMilliseconds(recipeForm.getCookingMilliseconds());
         recipeEntity.setDescription(recipeForm.getDescription());
