@@ -4,6 +4,7 @@ Demo version: http://recipe-api-demo7.apps.us-east-1.starter.openshift-online.co
 <img src="https://sun9-23.userapi.com/c858332/v858332351/1a606e/_1Y8V_J8ar8.jpg">
 ## How to install? 
 ### linux:
+To start project you need docker, docker-compose, jre-11 and mvn. 
 First one, download and move into project directory. <br>
 After that, use list of commands: 
 1. Create docker container: `docker-compose build` <br>
@@ -31,7 +32,7 @@ Everything should start successfully if you haven't any busy ports from follow l
 Working with database and cache in different services. Use three types of models: Entities, Forms and Transfers - respectively for database and logic, input and output. 
 #### API
 Any endpoint starts from `api/v1`
-- swagger: `/swagger-ui.html` <br>
+- SWAGGER: `/swagger-ui.html` <br>
 Recipes:  `api/v1/recipes`
 - POST: create - `/` + body
 - GET: by id - `/id`, all - `/`
