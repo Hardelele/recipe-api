@@ -3,6 +3,9 @@ package com.github.hardelele.ra.utils.cache;
 import com.google.common.cache.Cache;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
