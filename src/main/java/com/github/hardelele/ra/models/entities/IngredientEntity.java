@@ -1,5 +1,6 @@
 package com.github.hardelele.ra.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.hardelele.ra.utils.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,7 +33,8 @@ public class IngredientEntity {
     @Column(name = "timestamp")
     private Timestamp timestamp;
 
-    @ManyToOne
-    @JoinColumn(name="recipe_id", nullable=false)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "recipe_id")
     private RecipeEntity recipe;
 }
