@@ -30,57 +30,47 @@ public class RecipeDatabaseService implements DatabaseService<RecipeEntity> {
 
     @Override
     public List<RecipeEntity> getAll() {
-        LOGGER.info("Get database: All recipes");
         return recipeRepository.findAll();
     }
 
     @Override
     public void cleanUp() {
-        LOGGER.info("Delete all recipes: ");
         recipeRepository.findAll()
                 .forEach(recipeEntity -> {
                     UUID id = recipeEntity.getId();
                     delete(id);
                 });
-        LOGGER.info("Clean up database");
     }
 
     @Override
     public CacheKey delete(UUID id) {
         RecipeEntity recipeEntity = getById(id);
         recipeRepository.deleteById(id);
-        LOGGER.info("Delete database: recipe = {}", recipeEntity);
         return new CacheKey(recipeEntity.getId(), recipeEntity.getName());
     }
 
     @Override
     public RecipeEntity add(RecipeEntity entity) {
-        LOGGER.info("Add database: recipe = {}", entity);
         return recipeRepository.save(entity);
     }
 
     @Override
     public RecipeEntity getByName(String name) {
-        LOGGER.info("Unusable method");
         return null;
     }
 
     @Override
     public RecipeEntity getById(UUID id) {
-        LOGGER.info("Check database: id = {}", id.toString());
         RecipeEntity recipeEntity = recipeRepository.findById(id)
                 .orElseThrow(() -> {
-                    LOGGER.info("Empty database: id = {}", id.toString());
                     throw new NotFoundException("recipe by id:" + id, HttpStatus.NOT_FOUND);
                 });
 
-        LOGGER.info("Get database: id = {}, recipe = {}", id.toString(), recipeEntity);
         return recipeEntity;
     }
 
     @Override
     public boolean isExistByName(String name) {
-        LOGGER.info("Unusable method");
         return false;
     }
 }

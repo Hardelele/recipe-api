@@ -19,39 +19,32 @@ public class RecipeCacheService implements CacheService<RecipeEntity> {
 
     public void cleanUp() {
         recipesCache.cleanUp();
-        LOGGER.info("Clean up cache");
     }
 
     @Override
     public void deleteByCacheKey(CacheKey cacheKey) {
         recipesCache.delete(cacheKey);
-        LOGGER.info("Delete cache: cacheKey = {}", cacheKey);
     }
 
     @Override
     public RecipeEntity getByName(String name) {
-        LOGGER.info("Unusable method");
         return null;
     }
 
     @Override
     public RecipeEntity getById(UUID id) {
-        LOGGER.info("Check cache: id = {}", id.toString());
         RecipeEntity recipeFromCache = recipesCache.getIfPresent(id);
 
         if (recipeFromCache == null) {
-            LOGGER.info("Empty cache: id = {}", id.toString());
             throw new NullPointerException();
         }
 
-        LOGGER.info("Get cache: id = {}, recipe = {}", id.toString(), recipeFromCache);
         return recipeFromCache;
     }
 
     @Override
     public RecipeEntity add(CacheKey cacheKey, RecipeEntity entity) {
         recipesCache.put(cacheKey, entity);
-        LOGGER.info("Add cache: recipe = {}", entity);
         return entity;
     }
 }
