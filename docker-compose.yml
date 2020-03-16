@@ -1,0 +1,18 @@
+version: '3'
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    ports:
+      - "5000:5432"
+    environment:
+      - POSTGRES_DB=recipe
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=dev2020
+  backend:
+    container_name: backend
+    build: ./
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
