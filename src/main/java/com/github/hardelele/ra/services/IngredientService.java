@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -96,10 +95,14 @@ public class IngredientService {
         return ingredientDatabaseService.isExistByName(name);
     }
 
-    public Set<IngredientEntity> mapIngredientsToEntity(RecipeForm recipeForm) {
+    public List<IngredientEntity> getAllByRecipeId(UUID id) {
+        return ingredientDatabaseService.getAllByRecipeId(id);
+    }
+
+    public List<IngredientEntity> mapIngredientsToEntity(RecipeForm recipeForm) {
         return recipeForm.getIngredients().stream()
                 .map(this::getOrCreateIngredient)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     private CacheKey getCacheKey(IngredientEntity ingredient) {
