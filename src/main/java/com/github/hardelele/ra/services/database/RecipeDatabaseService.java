@@ -4,7 +4,6 @@ import com.github.hardelele.ra.exceptions.NotFoundException;
 import com.github.hardelele.ra.models.entities.RecipeEntity;
 import com.github.hardelele.ra.repositories.RecipeRepository;
 import com.github.hardelele.ra.services.IngredientService;
-import com.github.hardelele.ra.utils.cache.CacheKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,18 +34,12 @@ public class RecipeDatabaseService implements DatabaseService<RecipeEntity> {
 
     @Override
     public void cleanUp() {
-        recipeRepository.findAll()
-                .forEach(recipeEntity -> {
-                    UUID id = recipeEntity.getId();
-                    delete(id);
-                });
+        recipeRepository.deleteAll();
     }
 
     @Override
-    public CacheKey delete(UUID id) {
-        RecipeEntity recipeEntity = getById(id);
+    public void delete(UUID id) {
         recipeRepository.deleteById(id);
-        return new CacheKey(recipeEntity.getId(), recipeEntity.getName());
     }
 
     @Override
@@ -55,22 +48,8 @@ public class RecipeDatabaseService implements DatabaseService<RecipeEntity> {
     }
 
     @Override
-    public RecipeEntity getByName(String name) {
-        return null;
-    }
-
-    @Override
-    public RecipeEntity getById(UUID id) {
-        RecipeEntity recipeEntity = recipeRepository.findById(id)
-                .orElseThrow(() -> {
-                    throw new NotFoundException("recipe by id:" + id, HttpStatus.NOT_FOUND);
-                });
-
-        return recipeEntity;
-    }
-
-    @Override
-    public boolean isExistByName(String name) {
-        return false;
+    public RecipeEntity get(UUID id) {
+        return recipeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("recipe by id:" + id, HttpStatus.NOT_FOUND));
     }
 }
