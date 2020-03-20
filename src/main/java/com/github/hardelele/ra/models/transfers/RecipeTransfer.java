@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -22,7 +23,7 @@ public class RecipeTransfer {
     @JsonProperty(value = "cooking_in_milliseconds")
     private long cookingMilliseconds;
 
-    private Set<IngredientTransfer> ingredients;
+    private List<IngredientTransfer> ingredients;
 
     private Timestamp timestamp;
 }
