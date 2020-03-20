@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -21,5 +21,5 @@ public class RecipeForm {
     @JsonProperty(value = "cooking_in_milliseconds")
     private long cookingMilliseconds;
 
-    private Set<IngredientForm> ingredients;
+    private List<IngredientForm> ingredients;
 }

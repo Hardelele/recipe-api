@@ -3,10 +3,6 @@ package com.github.hardelele.ra.services.database;
 import com.github.hardelele.ra.exceptions.NotFoundException;
 import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.repositories.IngredientRepository;
-import com.github.hardelele.ra.services.IngredientService;
-import com.github.hardelele.ra.utils.cache.CacheKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,8 +14,6 @@ import java.util.UUID;
 @Service
 @Transactional
 public class IngredientDatabaseService implements DatabaseService<IngredientEntity> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(IngredientService.class);
 
     private final IngredientRepository ingredientRepository;
 
@@ -35,18 +29,12 @@ public class IngredientDatabaseService implements DatabaseService<IngredientEnti
 
     @Override
     public void cleanUp() {
-        ingredientRepository.findAll()
-                .forEach(ingredientEntity -> {
-                    UUID id = ingredientEntity.getId();
-                    delete(id);
-                });
+        ingredientRepository.deleteAll();
     }
 
     @Override
-    public CacheKey delete(UUID id) {
-        IngredientEntity ingredientEntity = getById(id);
+    public void delete(UUID id) {
         ingredientRepository.deleteById(id);
-        return new CacheKey(ingredientEntity.getId(), ingredientEntity.getName());
     }
 
     @Override
@@ -55,27 +43,9 @@ public class IngredientDatabaseService implements DatabaseService<IngredientEnti
     }
 
     @Override
-    public IngredientEntity getByName(String name) {
-        if(!isExistByName(name)) {
-            throw new NotFoundException("ingredient by name:" + name, HttpStatus.NOT_FOUND);
-        }
-        IngredientEntity ingredientEntity = ingredientRepository.findByName(name);
-        return ingredientEntity;
-    }
-
-    @Override
-    public IngredientEntity getById(UUID id) {
-        IngredientEntity ingredientEntity = ingredientRepository.findById(id)
-                .orElseThrow(() -> {
-                    throw new NotFoundException("ingredient by id: " + id, HttpStatus.NOT_FOUND);
-                });
-        return ingredientEntity;
-    }
-
-    @Override
-    public boolean isExistByName(String name){
-        boolean isExistByName = ingredientRepository.existsByName(name);
-        return isExistByName;
+    public IngredientEntity get(UUID id) {
+        return ingredientRepository.findById(id).orElseThrow(() ->
+                new NotFoundException("ingredient by id: " + id, HttpStatus.NOT_FOUND));
     }
 
     public List<IngredientEntity> getAllByRecipeId(UUID id) {

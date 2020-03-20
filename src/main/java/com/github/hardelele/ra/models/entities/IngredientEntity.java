@@ -37,4 +37,14 @@ public class IngredientEntity {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "recipe_id")
     private RecipeEntity recipe;
+
+    @Override
+    public String toString() {
+        return "IngredientEntity{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", status=" + status +
+                ", timestamp=" + timestamp +
+                '}';
+    }
 }
