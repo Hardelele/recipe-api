@@ -1,7 +1,7 @@
 version: '3'
 services:
   postgres:
-    container_name: postgres
+    container_name: postgresql
     image: postgres:latest
     ports:
       - "5000:5432"
@@ -15,4 +15,4 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      - postgresql

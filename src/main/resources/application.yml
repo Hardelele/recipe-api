@@ -10,7 +10,7 @@ spring:
     active: docker
   # Database
   datasource:
-    url: jdbc:postgresql://postgres:5432/recipe
+    url: jdbc:postgresql://postgresql:5432/recipe
     username: postgres
     password: dev2020
     driver-class-name: org.postgresql.Driver
