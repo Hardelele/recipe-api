@@ -1,0 +1,24 @@
+spring:
+    h2:
+        console:
+            enabled: true
+            path: /h2
+    datasource:
+        url: jdbc:h2:mem:testdb
+        username: sa
+        password:
+        driverClassName: org.h2.Driver
+    profiles:
+        active: test
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: false
+        database: h2
+        database-platform: org.hibernate.dialect.H2Dialect
+        open-in-view: false
+        generate-ddl: false
+    liquibase:
+        change-log: classpath:/master.xml
+    flyway:
+        enabled: false
