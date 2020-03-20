@@ -34,38 +34,53 @@ public class CacheServiceTest {
         entities1 = new HashMap<>();
         entities2 = new HashMap<>();
 
-        entities1.put(id1,new TestEntity1(id1,"1"));
-        //entities1.put(id2,new TestEntity1(id2,"2"));
-        entities2.put(id1,new TestEntity2(id1,"1"));
-        //entities2.put(id2,new TestEntity2(id2,"2"));
+        entities1.put(id1, new TestEntity1(id1, "1"));
+        entities2.put(id1, new TestEntity2(id1, "1"));
 
         cacheService1.add(id1, entities1.get(id1));
-        //cacheService1.add(id2, entities1.get(id2));
         cacheService2.add(id1, entities2.get(id1));
-        //cacheService2.add(id2, entities2.get(id2));
     }
 
     @Test
-    public void get() {
+    public void getTest() {
+
         TestEntity1 expected1 = entities1.get(id1);
         TestEntity1 actual1 = cacheService1.get(id1, (Class<TestEntity1>) expected1.getClass());
         assertEquals(expected1, actual1);
 
         TestEntity2 expected2 = entities2.get(id1);
-        TestEntity2 actual2 = cacheService2.get(id1, (Class<TestEntity2>) expected2.getClass());
+        TestEntity2 actual2 = cacheService2.get(id1, TestEntity2.class);
+        assertEquals(expected2, actual2);
+    }
+
+    @Test
+    public void addTest() {
+
+        entities1.put(id2, new TestEntity1(id2,"2"));
+        TestEntity1 expected1 = entities1.get(id2);
+        entities2.put(id2, new TestEntity2(id2,"2"));
+        TestEntity2 expected2 = entities2.get(id2);
+
+        cacheService1.add(id2, entities1.get(id2));
+        cacheService2.add(id2, entities2.get(id2));
+
+        TestEntity1 actual1 = cacheService1.add(id2, entities1.get(id2));
+        assertEquals(expected1, actual1);
+
+        TestEntity2 actual2 = cacheService2.add(id2, entities2.get(id2));
         assertEquals(expected2, actual2);
     }
 
     @Data
     @AllArgsConstructor
-    private class TestEntity1 {
+    private static class TestEntity1 {
         private UUID id;
         private String testString;
     }
 
     @Data
     @AllArgsConstructor
-    private class TestEntity2 {
+    private static class TestEntity2 {
         private UUID id;
         private String testString;
     }
