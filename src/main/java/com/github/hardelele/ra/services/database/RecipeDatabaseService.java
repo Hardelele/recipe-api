@@ -18,8 +18,6 @@ import java.util.UUID;
 @Transactional
 public class RecipeDatabaseService implements DatabaseService<RecipeEntity> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IngredientService.class);
-
     private final RecipeRepository recipeRepository;
 
     @Autowired
