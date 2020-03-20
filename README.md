@@ -1,6 +1,6 @@
 # recipe-api
 Stateless REST api service for writing and store recipes <br>
-Demo version: http://recipe-api-demo7.apps.us-east-1.starter.openshift-online.com/api/v1/swagger-ui.html
+Demo version: http://api-deploy.apps.us-east-1.starter.openshift-online.com/api/v1/swagger-ui.html
 <img src="https://sun9-23.userapi.com/c858332/v858332351/1a606e/_1Y8V_J8ar8.jpg">
 ## How to install? 
 ### linux:
