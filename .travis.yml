@@ -19,6 +19,7 @@ cache:
     - $HOME/.m2
 
 script:
+  - mvn clean package
   - docker-compose build
   - docker-compose up
 
