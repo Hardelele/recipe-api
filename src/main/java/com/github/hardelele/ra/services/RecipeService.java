@@ -2,12 +2,12 @@ package com.github.hardelele.ra.services;
 
 import com.github.hardelele.ra.models.entities.IngredientEntity;
 import com.github.hardelele.ra.models.entities.RecipeEntity;
+import com.github.hardelele.ra.models.forms.IngredientForm;
 import com.github.hardelele.ra.models.forms.RecipeForm;
-import com.github.hardelele.ra.models.transfers.RecipeTransfer;
-import com.github.hardelele.ra.services.cache.RecipeCacheService;
+import com.github.hardelele.ra.services.cache.CacheService;
 import com.github.hardelele.ra.services.database.RecipeDatabaseService;
-import com.github.hardelele.ra.utils.cache.CacheKey;
 import com.github.hardelele.ra.utils.mapping.RecipeMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,85 +19,81 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class RecipeService {
 
     private final RecipeDatabaseService recipeDatabaseService;
 
-    private final RecipeCacheService recipeCacheService;
-
-    private final IngredientService ingredientService;
+    private final CacheService<RecipeEntity> cacheService;
 
     private final RecipeMapper recipeMapper;
+
+    private final Mapper mapper;
 
 
     @Autowired
     public RecipeService(RecipeDatabaseService recipeDatabaseService,
-                         RecipeCacheService recipeCacheService,
-                         IngredientService ingredientService,
-                         RecipeMapper recipeMapper) {
+                         CacheService<RecipeEntity> cacheService,
+                         RecipeMapper recipeMapper,
+                         Mapper mapper) {
         this.recipeDatabaseService = recipeDatabaseService;
-        this.recipeCacheService = recipeCacheService;
-        this.ingredientService = ingredientService;
+        this.cacheService = cacheService;
         this.recipeMapper = recipeMapper;
+        this.mapper = mapper;
     }
 
     public RecipeEntity createRecipe(RecipeForm recipeForm) {
-        List<IngredientEntity> ingredients = getIngredients(recipeForm);
-        RecipeEntity recipeEntity = recipeMapper.formToEntity(recipeForm, ingredients);
-        for (IngredientEntity ingredientEntity : recipeEntity.getIngredients()) {
-            ingredientEntity.setRecipe(recipeEntity);
-        }
+
+        final List<IngredientEntity> ingredientEntityList = extractIngredientEntityList(recipeForm);
+        RecipeEntity recipeEntity = recipeMapper.formToEntity(recipeForm, ingredientEntityList);
+        recipeEntity.getIngredients().forEach(ingredientEntity -> ingredientEntity.setRecipe(recipeEntity));
+
         return putInDatabaseAndCache(recipeEntity);
     }
 
     public List<RecipeEntity> getAllRecipes() {
-        return recipeDatabaseService.getAll().stream().map(recipeToSave -> {
-            CacheKey cacheKey = getCacheKey(recipeToSave);
-            return recipeCacheService.add(cacheKey, recipeToSave);
-        }).collect(Collectors.toList());
+        return recipeDatabaseService.getAll();
     }
 
     public RecipeEntity getRecipe(UUID id) {
-        RecipeEntity recipeFromDatabase;
-        try {
-            recipeFromDatabase = recipeCacheService.getById(id);
-        } catch (NullPointerException ignored) {
-            recipeFromDatabase = recipeDatabaseService.getById(id);
-            CacheKey cacheKey = getCacheKey(recipeFromDatabase);
-            recipeCacheService.add(cacheKey, recipeFromDatabase);
+        RecipeEntity recipeEntity = cacheService.get(id, RecipeEntity.class);
+        if (recipeEntity != null) {
+            log.info("Received cache: {}", recipeEntity);
+            return recipeEntity;
+        } else {
+            recipeEntity = recipeDatabaseService.get(id);
+            return cacheService.add(id, recipeEntity);
         }
-        recipeFromDatabase.setIngredients(ingredientService.getAllByRecipeId(recipeFromDatabase.getId()));
-        return recipeFromDatabase;
     }
 
     public RecipeEntity updateRecipe(UUID id, RecipeForm recipeForm) {
-        RecipeEntity recipeEntity = getRecipe(id);
-        List<IngredientEntity> ingredients = getIngredients(recipeForm);
-        RecipeEntity recipeToSave = recipeMapper.editEntity(recipeEntity, recipeForm, ingredients);
+        final RecipeEntity recipeEntity = getRecipe(id);
+        final List<IngredientEntity> ingredientEntityList = extractIngredientEntityList(recipeForm);
+        RecipeEntity recipeToSave = recipeMapper.editEntity(recipeEntity, recipeForm, ingredientEntityList);
+        recipeToSave.getIngredients().forEach(ingredientEntity -> ingredientEntity.setRecipe(recipeEntity));
         return putInDatabaseAndCache(recipeToSave);
     }
 
     public void deleteRecipe(UUID id) {
-        CacheKey cacheKey = recipeDatabaseService.delete(id);
-        recipeCacheService.deleteByCacheKey(cacheKey);
+        recipeDatabaseService.delete(id);
+        cacheService.delete(id, RecipeEntity.class);
     }
 
     public void deleteAllRecipes() {
         recipeDatabaseService.cleanUp();
-        recipeCacheService.cleanUp();
-    }
-
-    private CacheKey getCacheKey(RecipeEntity recipe) {
-        return new CacheKey(recipe.getId(),recipe.getName());
+        cacheService.cleanUp();
     }
 
     private RecipeEntity putInDatabaseAndCache(RecipeEntity recipeToSave) {
-        CacheKey cacheKey = getCacheKey(recipeToSave);
-        recipeToSave = recipeDatabaseService.add(recipeToSave);
-        return recipeCacheService.add(cacheKey, recipeToSave);
+        final UUID recipeId = recipeToSave.getId();
+        final RecipeEntity recipeFromDatabase = recipeDatabaseService.add(recipeToSave);
+        return cacheService.add(recipeId, recipeFromDatabase);
     }
 
-    private List<IngredientEntity> getIngredients(RecipeForm recipeForm) {
-        return ingredientService.mapIngredientsToEntity(recipeForm);
+    private List<IngredientEntity> extractIngredientEntityList(RecipeForm recipeForm) {
+        final List<IngredientForm> ingredientFormList = recipeForm.getIngredients();
+        return ingredientFormList.stream()
+                .map(ingredientForm -> mapper.map(ingredientForm, IngredientEntity.class))
+                .collect(Collectors.toList());
     }
 }
