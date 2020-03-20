@@ -4,6 +4,7 @@ import com.github.hardelele.ra.utils.cache.BaseCacheBuilder;
 import com.google.common.cache.Cache;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -16,12 +17,12 @@ public class CacheService<E> {
     private Cache<CacheKey, E> cache = baseCacheBuilder.build();
 
     public void cleanUp() {
-        cache.cleanUp();
+        cache.invalidateAll();
     }
 
     public void delete(UUID id, Class<E> entityClass) {
         CacheKey cacheKey = new CacheKey(id, entityClass);
-        cache.put(cacheKey, (E) new Object());
+        cache.invalidate(cacheKey);
     }
 
     public E get(UUID id, Class<E> entityClass) {
