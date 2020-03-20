@@ -24,6 +24,6 @@ spring:
     open-in-view: false
     generate-ddl: false
   liquibase:
-    change-log: classpath:/data/changelogs/master.xml
+    change-log: classpath:/master.xml
   flyway:
     enabled: false
