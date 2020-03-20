@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
