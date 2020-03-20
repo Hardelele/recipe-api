@@ -4,7 +4,6 @@ import com.github.hardelele.ra.utils.cache.BaseCacheBuilder;
 import com.google.common.cache.Cache;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
