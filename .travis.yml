@@ -4,6 +4,7 @@ install: true
 
 services:
   - docker
+  - postgresql
 
 env:
   - DOCKER_COMPOSE_VERSION=1.4.2
