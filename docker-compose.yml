@@ -6,7 +6,7 @@ services:
     ports:
       - "5000:5432"
     environment:
-      - POSTGRES_DB=recipe
+      - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=dev2020
   backend:
